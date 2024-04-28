@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "system",
     author: "Liane Cagara",
-    usePrefix: false,
+    usePrefix: true,
     description: "Reload, send, upload, install, or delete modules",
     usage: "{pn} [install/reload/file/bin] <filename>",
     role: 1,
