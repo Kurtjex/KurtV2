@@ -1,4 +1,4 @@
-const { Hercai } = require('hercai');
+const axios = require("axios");
 
 module.exports = {
   config: {
@@ -9,19 +9,24 @@ module.exports = {
     author: "Rui",
     cooldown: 5,
     usePrefix: false,
-    role: 0
+    role: 0,
   },
   async onRun({ fonts, api, message, args }) {
     const query = args.join(" ");
 
     if (!query) {
+      message.react("❓")
       message.reply("❌ | Please provide a query!");
     } else {
-      const herc = new Hercai();
-      const info = await message.reply(`🔍 | ${query}`);
-
-      const response = await herc.question({ model: "v3", content: query });
-      api.editMessage(`${fonts.bold('🤖 | AI')}\n━━━━━━━━━━━━━━━\n${response.reply}`, info.messageID);
+      const info = await
+message.reply(`🔍 | ${query}`);
+      message.react ("🕒")
+      const response = await axios.get(`https://akhiro-rest-api.onrender.com/api/gpt4?q=${encodeURIComponent(query)}`);
+      message.react("☑️")
+      api.editMessage(
+        `${fonts.bold("🤖 | AI")}\n━━━━━━━━━━━━━━━\n${response.data.content}`,
+        info.messageID,
+      );
     }
-  }
+  },
 };
