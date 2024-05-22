@@ -1,14 +1,14 @@
-module.exports = {
-  config: {
+module.exports = new Object({
+  config: new Object({
     name: "acp",
+    role: 2,
+    author: "AkhiroDEV",
+    usePrefix: true,
     role: 1,
-    author: "Rui",
-    description: "Accepts the request from the user",
-    usePrefix: true
-  },
-  async onRun({ api, event, args: text, message }) {
+    description: "Accepts the request from the user"
+  }),
+  onRun: async function({ api, event, args: text, message }) {
     const moment = require("moment-timezone");
-    const { botPrefix } = global.client;
 
     const handleApprove = async (targetUID) => {
       const form = {
@@ -41,10 +41,10 @@ module.exports = {
       return { success, failed };
     };
 
-    if (text[0] === `${botPrefix}approve`) {
+    if (text[0] === "approve") {
       if (text.length !== 2 || isNaN(text[1])) {
         return message.reply(
-          `Invalid syntax. Use: ${botPrefix}approve <UID>`);
+          `Invalid syntax. Use: acc approve <UID>`);
       }
       const targetUID = text[1];
       const { success, failed } = await handleApprove(targetUID);
@@ -86,10 +86,10 @@ module.exports = {
               .format("DD/MM/YYYY HH:mm:ss")}\n`;
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        const foo = await message.reply("Getting friend requests...");
+        const foo = await message.reply("Processing");
         await new Promise((resolve) => setTimeout(resolve, 1000));
         await message.edit(
-          `${msg}\nApprove friend request using UID: ${botPrefix}approve <UID>`, foo.messageID);
+          `${msg}\nApprove friend request using UID: acc approve <UID>`, foo.messageID);
       } catch (error) {
         console.error(`Error fetching friend requests: ${error.message}`, error);
         message.reply(
@@ -100,7 +100,7 @@ module.exports = {
     }
 
     message.reply(
-      `Invalid command. Use: ${botPrefix}approve <UID> or ${botPrefix}list to view pending friend requests.`,
+      `Invalid command. Use: acc approve <UID> or acc list to view pending friend requests.`,
     );
   },
-};
+});
