@@ -1,58 +1,70 @@
-const fs = require('fs-extra');
-const log = require('./includes/log');
-const path = require('path');
+const fs = require("fs-extra");
+const log = require("./includes/log");
+const path = require("path");
 
 async function loadAll() {
-  const commandsPath = path.join(__dirname, 'modules', 'commands');
-  const eventsPath = path.join(__dirname, 'modules', 'events');
+  const errs = {};
+  const commandsPath = path.join(__dirname, "modules", "commands");
+  const eventsPath = path.join(__dirname, "modules", "events");
 
   try {
+    Object.keys(require.cache).forEach((key) => delete require.cache[key]);
     const commandFiles = fs
       .readdirSync(commandsPath)
-      .filter((file) => file.endsWith('.js'));
+      .filter((file) => file.endsWith(".js")) || file.endsWith(".ts");
 
     commandFiles.forEach((file) => {
       try {
-        const cmdFile = require(path.join(commandsPath, file));
+        let cmdFile = require(path.join(commandsPath, file));
+        if (cmdFile && cmdFile.default) {
+          cmdFile = cmdFile.default;
+        };
 
         if (!cmdFile) {
-          log.error(`Error: ${file} does not export anything!`);
+          throw new Error(`Error: ${file} does not export anything!`);
         } else if (!cmdFile.config) {
-          log.error(`Error: ${file} does not export config!`);
+          throw new Error(`Error: ${file} does not export config!`);
         } else if (!cmdFile.onRun) {
-          log.error(`Error: ${file} does not export onRun!`);
+          throw new Error(`Error: ${file} does not export onRun!`);
         } else {
           global.client.commands.set(cmdFile.config.name, cmdFile);
         }
       } catch (error) {
         log.error(`Error loading command ${file}: ${error.message}`);
+        errs[file] = error;
       }
     });
 
     const eventFiles = fs
       .readdirSync(eventsPath)
-      .filter((file) => file.endsWith('.js'));
+      .filter((file) => file.endsWith(".js")) || file.endsWith(".ts");
 
     eventFiles.forEach((file) => {
       try {
-        const evntFile = require(path.join(eventsPath, file));
-
+        let evntFile = require(path.join(eventsPath, file));
+        if (evntFile && evntFile.default) {
+          evntFile = evntFile.default;
+        };
+        
         if (!evntFile) {
-          log.error(`Error: ${file} does not export anything!`);
+          throw new Error(`Error: ${file} does not export anything!`);
         } else if (!evntFile.config) {
-          log.error(`Error: ${file} does not export config!`);
+          throw new Error(`Error: ${file} does not export config!`);
         } else if (!evntFile.onEvent) {
-          log.error(`Error: ${file} does not export onEvent!`);
+          throw new Error(`Error: ${file} does not export onEvent!`);
         } else {
           global.client.events.set(evntFile.config.name, evntFile);
         }
       } catch (error) {
         log.error(`Error loading event ${file}: ${error.message}`);
+        errs[file] = error;
       }
     });
   } catch (error) {
     log.error(error.stack);
+    errs[file] = error;
   }
+  return Object.keys(errs).length === 0 ? false : errs;
 }
 
 module.exports = { loadAll };
